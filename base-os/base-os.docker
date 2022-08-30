@@ -1,0 +1,96 @@
+FROM scratch
+ADD ubuntu-base-20.04.4-base-amd64.tar.gz /
+
+
+# Mostly taken from https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap
+# make some changes to make apt happier running in docker
+RUN set -xe \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L40-L48
+# stop services from starting
+	&& echo '#!/bin/sh' > /usr/sbin/policy-rc.d \
+	&& echo 'exit 101' >> /usr/sbin/policy-rc.d \
+	&& chmod +x /usr/sbin/policy-rc.d \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L54-L56
+# prevent upstart scripts from running during install / update
+	&& dpkg-divert --local --rename --add /sbin/initctl \
+	&& cp -a /usr/sbin/policy-rc.d /sbin/initctl \
+	&& sed -i 's/^exit.*/exit 0/' /sbin/initctl \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L71-L78
+# don't try to have safe io (we don't last a power outage anyway)
+	&& echo 'force-unsafe-io' > /etc/dpkg/dpkg.cfg.d/docker-apt-speedup \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L109-L115
+# don't download any language / translation files
+	&& echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/docker-no-languages \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L118-L130
+# make image smaller by only storing the indexes as a gz
+	&& echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > /etc/apt/apt.conf.d/docker-gzip-indexes \
+# https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap#L134-L151
+# make apt aggressive about removing packages.. not sure if we actually care about this one
+	&& echo 'Apt::AutoRemove::SuggestsImportant "false";' > /etc/apt/apt.conf.d/docker-autoremove-suggests
+
+# verify that the APT lists files do not exist
+RUN [ -z "$(apt-get indextargets)" ]
+# (see https://bugs.launchpad.net/cloud-images/+bug/1699913)
+
+# make systemd-detect-virt return "docker"
+# See: https://github.com/systemd/systemd/blob/aa0c34279ee40bce2f9681b496922dedbadfca19/src/basic/virt.c#L434
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+
+# Base utilities / software needed to boot
+RUN export DEBIAN_FRONTEND=noninteractive \
+    # update tmp perms so apt-key can pass temporary files to apt.
+    && chmod 777 /tmp \
+    && apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        amd64-microcode \
+        dosfstools \
+        grub-efi-amd64-bin \
+        grub2-common \
+        ifupdown \
+        initramfs-tools-bin \
+        initramfs-tools-core \
+        initramfs-tools-devices \
+        iproute2 \
+        iputils-ping \
+        linux-firmware \
+        linux-image-5.11.0-46-lowlatency \
+        openssh-server \
+        openssl \
+        overlayroot \
+        python3 \
+        rauc \
+        rauc-service \
+        squashfs-tools \
+        sudo \
+        systemd \
+        tree \
+        vim \
+        xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -xe \
+    \
+    # use systemd as init.
+    && ln -s /lib/systemd/systemd /sbin/init \
+    \
+    # add racer user.
+    && useradd -m -d /home/racer -G dialout,plugdev,sudo -U -s /bin/bash -p "$(openssl passwd -5 "2040racer")" racer \
+    # add admin user with no home dir.
+    && useradd -G adm,sudo -U -s /bin/bash -p $(openssl passwd -5 "2040admin") admin \
+    \
+    # generate grub efi image.
+    # TODO: check module usage instead of linking everything statically.
+    # layout:
+    #   p1 (boot): grub.cfg arch-modules/ efi/
+    #   p2 (root): /boot/{kernel,initrd,grub} (mount p1 on /boot/grub
+    && mkdir -p /boot/grub/86_64-efi \
+    # && grub-install --target=x86_64-efi --efi-directory=/boot/grub/86_64-efi \
+    && grub-install --target=x86_64-efi --efi-directory=/boot --boot-directory=/boot --removable /dev/sdb \
+    # fix-up initramfs - remove ubuntu stuff that we don't need.
+    && rm -rvf /usr/share/initramfs-tools/scripts/local-premount/resume \
+    && rm -rvf /usr/share/initramfs-tools/scripts/local-premount/resize \
+    && update-initramfs -u
+
+ADD grub.cfg /boot/grub
+
+CMD ["/bin/bash"]

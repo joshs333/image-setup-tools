@@ -1,0 +1,10 @@
+disks:
+- device: /dev/sdb
+  table: "gpt"
+  partitions:
+  - name: "EFI System Partition"
+    type: fat32
+    size: "512M"
+  - name: Linux Rescue Disk
+    type: ext4
+    size: 100%
