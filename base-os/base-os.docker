@@ -1,5 +1,5 @@
 FROM scratch
-ADD ubuntu-base-20.04.4-base-amd64.tar.gz /
+ADD workspace/downloads/ubuntu-base-20.04.4-base-amd64.tar.gz /
 
 
 # Mostly taken from https://github.com/moby/moby/blob/9a9fc01af8fb5d98b8eec0740716226fadb3735c/contrib/mkimage/debootstrap
@@ -46,6 +46,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         dosfstools \
         grub-efi-amd64-bin \
         grub2-common \
+        grub-gfxpayload-lists \
+        shim-* \
         ifupdown \
         initramfs-tools-bin \
         initramfs-tools-core \
@@ -68,29 +70,30 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
+ARG admin_username=admin
+ARG admin_password=hello_there
+ARG default_username=user
+ARG default_password=hello_there
+
 RUN set -xe \
-    \
     # use systemd as init.
     && ln -s /lib/systemd/systemd /sbin/init \
-    \
-    # add racer user.
-    && useradd -m -d /home/racer -G dialout,plugdev,sudo -U -s /bin/bash -p "$(openssl passwd -5 "2040racer")" racer \
-    # add admin user with no home dir.
-    && useradd -G adm,sudo -U -s /bin/bash -p $(openssl passwd -5 "2040admin") admin \
-    \
-    # generate grub efi image.
-    # TODO: check module usage instead of linking everything statically.
-    # layout:
-    #   p1 (boot): grub.cfg arch-modules/ efi/
-    #   p2 (root): /boot/{kernel,initrd,grub} (mount p1 on /boot/grub
-    && mkdir -p /boot/grub/86_64-efi \
-    # && grub-install --target=x86_64-efi --efi-directory=/boot/grub/86_64-efi \
-    && grub-install --target=x86_64-efi --efi-directory=/boot --boot-directory=/boot --removable /dev/sdb \
-    # fix-up initramfs - remove ubuntu stuff that we don't need.
+    && groupadd syslog \
+    && useradd -m -d /home/$default_username -G syslog,dialout,plugdev,sudo -U -s /bin/bash -p "$(openssl passwd -5 "$default_password")" $default_username \
+    && useradd -G adm,sudo -U -s /bin/bash -p $(openssl passwd -5 "$admin_password") $admin_username \
     && rm -rvf /usr/share/initramfs-tools/scripts/local-premount/resume \
     && rm -rvf /usr/share/initramfs-tools/scripts/local-premount/resize \
     && update-initramfs -u
 
-ADD grub.cfg /boot/grub
+RUN set -xe \
+    && mkdir -p /boot/grub/x86_64-efi \
+    && cp -r /usr/lib/grub/x86_64-efi/* /boot/grub/x86_64-efi \
+    && mkdir -p /boot/grub/fonts \
+    && cp /usr/share/grub/unicode.pf2 /boot/grub/fonts \
+    && cp /usr/share/grub/unicode.pf2 /boot/grub \
+    && grub-editenv create \
+    && update-grub-gfxpayload
+
+ADD base-os/grub.cfg /boot/grub/grub.cfg
 
 CMD ["/bin/bash"]

@@ -1,8 +1,9 @@
 disks:
 - device: /dev/sdb
   table: "gpt"
+  make_filesystems: true
   partitions:
-  - name: "EFI System Partition"
+  - name: EFI System Partition
     type: fat32
     size: "512M"
   - name: Linux Rescue Disk
