@@ -29,6 +29,8 @@ def convert_to_bytes(size_string):
 def get_partition_prefix(device):
     if "nvme" in device:
         return device + "p"
+    if "mmc" in device:
+        return device + "p"
     return device
 
 
@@ -39,6 +41,7 @@ class Partition:
         self.size = 0
         self.type = "ext4"
         self.name = ""
+        self.label = ""
         self.number = None
         self.flags = []
 
@@ -173,6 +176,8 @@ if __name__ == "__main__":
 
             if "name" in partition:
                 partition_info.name = partition["name"]
+            if "label" in partition:
+                partition_info.label = partition["label"]
             if "flags" in partition:
                 allowed_flags = ["boot", "esp"]
                 for f in partition["flags"]:
@@ -282,6 +287,10 @@ if __name__ == "__main__":
                 if target_partition.name != "":
                     name_command = f"parted -s {device} name {i + 1} '\"{target_partition.name}\"'"
                     execute(name_command, dry=args.dry)
+
+                if target_partition.label != "":
+                    label_command = f"e2label {device}{i+1} {target_partition.label}"
+                    execute(label_command, dry=args.dry)
 
                 for flag in target_partition.flags:
                     execute(f"parted -s {device} set {i + 1} {flag} on", dry=args.dry)

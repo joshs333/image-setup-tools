@@ -68,6 +68,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         tree \
         vim \
         xz-utils \
+        acl \
     && rm -rf /var/lib/apt/lists/*
 
 ARG admin_username=admin
@@ -78,6 +79,7 @@ ARG default_password=hello_there
 RUN set -xe \
     # use systemd as init.
     && ln -s /lib/systemd/systemd /sbin/init \
+    && ln -svf /lib/systemd/system/multi-user.target /lib/systemd/system/default.target \
     && groupadd syslog \
     && useradd -m -d /home/$default_username -G syslog,dialout,plugdev,sudo -U -s /bin/bash -p "$(openssl passwd -5 "$default_password")" $default_username \
     && useradd -G adm,sudo -U -s /bin/bash -p $(openssl passwd -5 "$admin_password") $admin_username \
@@ -92,8 +94,18 @@ RUN set -xe \
     && cp /usr/share/grub/unicode.pf2 /boot/grub/fonts \
     && cp /usr/share/grub/unicode.pf2 /boot/grub \
     && grub-editenv create \
-    && update-grub-gfxpayload
+    && update-grub-gfxpayload \
 
-ADD base-os/grub.cfg /boot/grub/grub.cfg
+RUN set -xe \
+    && mkdir -p /boot/grub/EFI/BOOT \
+    && cp /usr/lib/grub/x86_64-efi-signed/gcdx64.efi.signed /boot/grub/EFI/BOOT/grubx64.efi \
+    && cp /usr/lib/shim/mmx64.efi /boot/grub/EFI/BOOT \
+    && cp /usr/lib/shim/BOOTX64.CSV /boot/grub/EFI/BOOT \
+    && cp /usr/lib/shim/shimx64.efi /boot/grub/EFI/BOOT
+
+RUN set -xe \
+    && getfacl -Rn / > /tmp/perm_dump
+
+ADD base-os/overlay/ /
 
 CMD ["/bin/bash"]

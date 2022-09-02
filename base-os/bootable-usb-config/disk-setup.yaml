@@ -1,0 +1,10 @@
+grub_setup:
+  install: True
+  partition: 1
+  config: /boot/grub/grub.cfg
+partition_setup:
+- partition: 2
+  replace_patterns:
+  - /etc/fstab
+  install:
+  - ""

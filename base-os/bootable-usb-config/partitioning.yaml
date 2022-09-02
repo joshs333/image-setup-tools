@@ -1,5 +1,5 @@
 disks:
-- device: /dev/sdb
+- device: /dev/sda
   table: "gpt"
   make_filesystems: true
   partitions:
@@ -7,5 +7,6 @@ disks:
     type: fat32
     size: "512M"
   - name: Linux Rescue Disk
+    label: usb_boot_disk
     type: ext4
     size: 100%

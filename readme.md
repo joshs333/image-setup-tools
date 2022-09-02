@@ -10,4 +10,7 @@ Online Stuff:
 - just A/B / Rescue?
 
 
-
+Use this command to see how long it's taking for USB stuff to write.
+```
+watch grep -e Dirty: -e Writeback: /proc/meminfo
+```
