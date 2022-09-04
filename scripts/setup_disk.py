@@ -195,7 +195,7 @@ if __name__ == "__main__":
             try:
                 failed = False
 
-                if "install" in target_partition_cfg:
+                if "purge" in target_partition_cfg and target_partition_cfg["purge"] == True:
                     for f in os.listdir(mount_point):
                         path = os.path.join(mount_point, f)
                         try:
@@ -203,8 +203,15 @@ if __name__ == "__main__":
                         except OSError:
                             os.remove(path)
 
+                if "install" in target_partition_cfg:
                     for install in target_partition_cfg["install"]:
                         install_files(source_path, source_type, install, mount_point)
+
+                if "install_to" in target_partition_cfg:
+                    for install in target_partition_cfg["install_to"]:
+                        print(install)
+                        # install_files(source_path, source_type, install, mount_point)
+                exit()
 
                 if "replace_patterns" in target_partition_cfg:
                     for f in target_partition_cfg["replace_patterns"]:
@@ -213,6 +220,8 @@ if __name__ == "__main__":
                         target_f = os.path.join(mount_point, f)
 
                         edit_command = f"sed -i 's/@BOOT_UUID@/{boot_uuid}/g' {target_f}"
+                        r = subprocess.run(shlex.split(edit_command))
+                        edit_command = f"sed -i 's/@ROOTFS_UUID@/{rootfs_uuid}/g' {target_f}"
                         r = subprocess.run(shlex.split(edit_command))
 
             except Exception as err:

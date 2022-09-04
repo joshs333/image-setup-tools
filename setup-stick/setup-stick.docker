@@ -1,0 +1,29 @@
+FROM joshs333/rauc-setup/base-os
+
+ARG nightmare_dir=/home/user/nightmare
+
+# Base utilities / software needed to boot
+RUN export DEBIAN_FRONTEND=noninteractive \
+    # update tmp perms so apt-key can pass temporary files to apt.
+    && chmod 777 /tmp \
+    && apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        wget \
+        aewan \
+        cowsay \
+        jp2a \
+        nano \
+        lolcat \
+        sysvbanner \
+        pv \
+        mpg123 \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD nightmare-stick/overlay/ /
+
+RUN set -xe \
+    && cd /home/user/nightmare \
+    && wget "https://img.freepik.com/premium-vector/set-woman-hand-with-middle-finger-up_266639-144.jpg?w=2000" \
+    && rm /sbin/init \
+    && ln -s /home/user/nightmare/enter_sandman.sh /sbin/init
+

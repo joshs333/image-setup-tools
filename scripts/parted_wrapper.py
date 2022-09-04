@@ -279,18 +279,18 @@ if __name__ == "__main__":
             target_partition.start = current_start
             target_partition.end = current_start + target_partition.size - 1
             current_start = current_start + target_partition.size
+                if target_partition.label != "":
+                    label_command = f"e2label {device}{i+1} {target_partition.label}"
+                    execute(label_command, dry=args.dry)
 
             command = target_partition.command()
             if command != "":
                 print(f"Creating {partition_prefix}{i + 1} - {target_partition}")
                 execute(f"parted -s {device} {command}", dry=args.dry)
+                time.sleep(1.0)
                 if target_partition.name != "":
                     name_command = f"parted -s {device} name {i + 1} '\"{target_partition.name}\"'"
                     execute(name_command, dry=args.dry)
-
-                if target_partition.label != "":
-                    label_command = f"e2label {device}{i+1} {target_partition.label}"
-                    execute(label_command, dry=args.dry)
 
                 for flag in target_partition.flags:
                     execute(f"parted -s {device} set {i + 1} {flag} on", dry=args.dry)
@@ -303,7 +303,10 @@ if __name__ == "__main__":
                     if partition_type in type_to_command_map:
                         partition_type = type_to_command_map[partition_type]
 
-                    time.sleep(0.1)
                     execute(f"mkfs.{partition_type} {partition_prefix}{i + 1}", dry=args.dry)
+
+                if target_partition.label != "":
+                    label_command = f"e2label {device}{i+1} {target_partition.label}"
+                    execute(label_command, dry=args.dry)
 
                     

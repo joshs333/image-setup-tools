@@ -1,10 +1,31 @@
+# If this section is present it will perform actions on an efi partition to install grub
 grub_setup:
+  # Whether to actually perform the grub-install command (can be skipped)
   install: True
+  # Which partition to target
   partition: 1
-  config: /boot/grub/grub.cfg
+  # The grub configuration file (from --source) to replace the default one with
+  # For the base-os setup it redirects to another grub.cfg located in the root
+  # of the efi partition.. this setup is primary for rauc a/b compatibility,
+  # you could also install the actual grub config directly, or have a grub_redirect
+  # to a grub_config in the main os partition.
+  config: /boot/grub/grub_redirect.cfg
+# Setup Partitions (array of partitions to setup)
 partition_setup:
+- partition: 1
+  # Do NOT purge any existing files (we just setup grub in there!)
+  purge: False
+  # Copy all of /boot/grub to / of efi partition
+  # NOTE: /etc/fstab in base-os is setup to mount the efi partition to /boot/grub
+  install_to:
+  - "/boot/grub": "/"
 - partition: 2
-  replace_patterns:
-  - /etc/fstab
+  # We will purge any files in the rootfs
+  purge: True
+  # Directly install all files from source
   install:
   - ""
+  # Update fstab to correctly point to the efi partition by UUID
+  # (This is because we can't label the efi partition because it's fat32)
+  replace_patterns:
+  - /etc/fstab
