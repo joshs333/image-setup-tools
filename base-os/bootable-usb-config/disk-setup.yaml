@@ -9,7 +9,7 @@ grub_setup:
   # of the efi partition.. this setup is primary for rauc a/b compatibility,
   # you could also install the actual grub config directly, or have a grub_redirect
   # to a grub_config in the main os partition.
-  config: /boot/grub/grub_redirect.cfg
+  config: /boot/EFI/BOOT/grub.cfg
 # Setup Partitions (array of partitions to setup)
 partition_setup:
 - partition: 1
@@ -17,8 +17,10 @@ partition_setup:
   purge: False
   # Copy all of /boot/grub to / of efi partition
   # NOTE: /etc/fstab in base-os is setup to mount the efi partition to /boot/grub
+  # NOTE: This will override any of the binaries installed by the grub-install.. but
+  #  that's okay because the docker image installs all the necessary binaries properly
   install_to:
-  - "/boot/grub": "/"
+  - "/boot/grub/": "/"
 - partition: 2
   # We will purge any files in the rootfs
   purge: True

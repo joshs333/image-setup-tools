@@ -28,3 +28,6 @@ When setting up a bootable USB often a lot of pages can be dirtied which can tak
 ```
 watch grep -e Dirty: -e Writeback: /proc/meminfo
 ```
+
+You can often run into issues where operations seem to be taking unusually long because usb IO is slow.
+

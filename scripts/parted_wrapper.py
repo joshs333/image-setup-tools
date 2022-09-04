@@ -279,9 +279,6 @@ if __name__ == "__main__":
             target_partition.start = current_start
             target_partition.end = current_start + target_partition.size - 1
             current_start = current_start + target_partition.size
-                if target_partition.label != "":
-                    label_command = f"e2label {device}{i+1} {target_partition.label}"
-                    execute(label_command, dry=args.dry)
 
             command = target_partition.command()
             if command != "":

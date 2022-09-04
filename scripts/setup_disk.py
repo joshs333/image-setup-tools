@@ -39,8 +39,32 @@ def copy_file_direct(buffer_folder, source, source_type, file, dest):
             print(f"unable to file {file} in {source}")
             return False
         file_path = os.path.join(buffer_folder, file)
-        
-    shutil.move(file_path, dest)
+
+    if file_path[-1] == "/" and os.path.isdir(file_path):
+        def recursive_move(source, fdest):
+            for f in os.listdir(source):
+                local_path = os.path.join(source, f)
+                dest_path = os.path.join(fdest, f)
+
+                if os.path.exists(dest_path) and not os.path.isdir(dest_path):
+                    os.remove(dest_path)
+                if os.path.isdir(local_path):
+                    if not os.path.exists(dest_path):
+                        os.makedirs(dest_path)
+                    recursive_move(local_path, dest_path)
+                else:
+                    if os.path.exists(dest_path):
+                        shutil.rmtree(dest_path)
+                    shutil.move(local_path, dest_path)
+        recursive_move(file_path, dest)
+    else:
+        if os.path.exists(dest):
+            if os.path.isdir(dest):
+                shutil.rmtree(dest)
+            else:
+                os.remove(dest)
+        shutil.move(file_path, dest)
+
     return True
 
 # Copies a file, retains the tree above file
@@ -57,7 +81,10 @@ def install_files(source, source_type, file, dest):
             print(f"unable to extract {file} in {source}")
             return False
     else:
-        shutil.move(os.path.join(source, file), dest)
+        target = os.path.join(dest, file)
+        if not os.path.exists(os.path.split(target)[0]):
+            os.path.makedirs(os.path.split(target)[0])
+        shutil.move(os.path.join(source, file), target)
     return True
 
 if __name__ == "__main__":
@@ -178,6 +205,9 @@ if __name__ == "__main__":
                 print(f"Can't find efi partition {target_partition}")
                 do_before_exit()
 
+            rootfs_uuid_cmd = subprocess.check_output(shlex.split(f"lsblk -o UUID {target_partition}"))
+            rootfs_uuid = rootfs_uuid_cmd.decode('utf8').split("\n")[1]
+
             mount_point_cmd = subprocess.check_output(shlex.split(f"lsblk -o MOUNTPOINT {target_partition}"))
             mount_point = mount_point_cmd.decode('utf8').split("\n")[1]
 
@@ -209,9 +239,11 @@ if __name__ == "__main__":
 
                 if "install_to" in target_partition_cfg:
                     for install in target_partition_cfg["install_to"]:
-                        print(install)
-                        # install_files(source_path, source_type, install, mount_point)
-                exit()
+                        install_source = [k for k in install.keys()][0]
+                        install_dest = install[install_source]
+                        if install_dest[0] == "/":
+                            install_dest = install_dest[1:]
+                        copy_file_direct(buffer_folder, source_path, source_type, install_source, os.path.join(mount_point, install_dest))
 
                 if "replace_patterns" in target_partition_cfg:
                     for f in target_partition_cfg["replace_patterns"]:
@@ -226,7 +258,7 @@ if __name__ == "__main__":
 
             except Exception as err:
                 failed = True
-                print("Something failed with partition setup" + str(err))
+                print("Something failed with partition setup " + str(err))
 
 
             if we_did_mount and not args.dont_umount:

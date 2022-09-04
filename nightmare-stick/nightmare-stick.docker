@@ -23,7 +23,8 @@ ADD nightmare-stick/overlay/ /
 
 RUN set -xe \
     && cd /home/user/nightmare \
-    && wget "https://img.freepik.com/premium-vector/set-woman-hand-with-middle-finger-up_266639-144.jpg?w=2000" \
-    && rm /sbin/init \
-    && ln -s /home/user/nightmare/enter_sandman.sh /sbin/init
+    && wget "https://img.freepik.com/premium-vector/set-woman-hand-with-middle-finger-up_266639-144.jpg?w=2000"
+    # Rather than link /sbin/init we just use grub to override the init target for the nightmare entry point
+    # && rm /sbin/init \
+    # && ln -s /home/user/nightmare/enter_sandman.sh /sbin/init
 
