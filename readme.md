@@ -22,6 +22,8 @@ The setup disk script takes three arguments:
 
 The configuration file absorbs most of the information, the base-os [disk-setup.yaml](base-os/bootable-usb-config/disk-setup.yaml) is a good reference.
 
+I am not overjoyed with how the install / install_to is implemented.. particularly the install from filesystem (as opposed to tar) source I think is not correct and generally it feels brittle. Need to revisit sometime.
+
 
 # Misc
 When setting up a bootable USB often a lot of pages can be dirtied which can take a while to actual write to the USB... this can cause stalling of any unmount commands waiting for data to be written. To get an idea of how much data needs to be written run this command.
