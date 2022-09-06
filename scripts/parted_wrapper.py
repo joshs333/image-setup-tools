@@ -284,13 +284,28 @@ if __name__ == "__main__":
             if command != "":
                 print(f"Creating {partition_prefix}{i + 1} - {target_partition}")
                 execute(f"parted -s {device} {command}", dry=args.dry)
-                time.sleep(1.0)
+
                 if target_partition.name != "":
                     name_command = f"parted -s {device} name {i + 1} '\"{target_partition.name}\"'"
                     execute(name_command, dry=args.dry)
 
                 for flag in target_partition.flags:
                     execute(f"parted -s {device} set {i + 1} {flag} on", dry=args.dry)
+
+                max_timeout = 100.
+                start = time.time()
+                while True:
+                    data = None
+                    try:
+                        data = subprocess.check_output(shlex.split(f"ls {partition_prefix}{i + 1}"))
+                        break
+                    except Exception as err:
+                        # This means it doesn't exist...
+                        pass
+                    if time.time() - start > max_timeout:
+                        print(f"Error making {device}")
+                        exit()
+                    time.sleep(1.)
 
                 if make_filesystem:
                     type_to_command_map = {
