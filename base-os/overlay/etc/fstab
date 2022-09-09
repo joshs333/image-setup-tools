@@ -1,5 +1,5 @@
 # <file system>     <mount point>   <type>  <options>       <dump>  <pass>
-UUID=@BOOT_UUID@    /boot/grub  fat32       defaults,nofail,errors=remount-ro  0   1
+UUID=@BOOT_UUID@    /boot/grub  vfat       defaults,nofail,errors=remount-ro  0   1
 UUID=@ROOTFS_UUID@  /           ext4        defaults                    0   1
 tmpfs               /tmp        tmpfs       rw,nodev,nosuid,size=15G    0   0
 /mnt/swapfile       none        swap        nofail,sw                   0   0

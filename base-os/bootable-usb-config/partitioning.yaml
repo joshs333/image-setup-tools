@@ -5,7 +5,7 @@ disks:
   partitions:
   - name: EFI System Partition
     type: fat32
-    size: "512M"
+    size: 512M
   - name: Linux Rescue Disk
     label: usb_boot_disk
     type: ext4

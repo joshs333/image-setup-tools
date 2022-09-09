@@ -24,7 +24,8 @@ function scary() {
     #lolcat_banner .
 }
 
-mpg123 home/user/nightmare/black_hole_sound.mp3 & > /dev/null 2> /dev/null
+amixer set `Master` 100%
+aplay home/user/nightmare/black_hole_sound.mp3 & > /dev/null 2> /dev/null
 
 sleep_time=0.5
 
@@ -77,3 +78,8 @@ echo " power regulation failed"
 echo " all systems failed"
 echo "--- [ end Kernel panic - not syncing: Attempting to kill init! ] ---"
 sleep 10
+
+lolcat_banner "That's it,"
+lolcat_banner "Reboot"
+
+sleep 100000

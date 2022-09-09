@@ -158,7 +158,7 @@ if __name__ == "__main__":
                 print("ERROR: Partition MUST have size set!")
                 exit(1)
             partition_info.type = partition["type"]
-            allowed_types = ["fat32", "ext3", "ext4"]
+            allowed_types = ["fat32", "ext2", "ext3", "ext4"]
             if partition_info.type not in allowed_types:
                 print("ERROR: Partition type {partition_info.type} is invalid.")
                 exit(1)
@@ -307,6 +307,8 @@ if __name__ == "__main__":
                         exit()
                     time.sleep(1.)
 
+                time.sleep(1.0)
+
                 if make_filesystem:
                     type_to_command_map = {
                         "fat32": "fat"
@@ -316,6 +318,8 @@ if __name__ == "__main__":
                         partition_type = type_to_command_map[partition_type]
 
                     execute(f"mkfs.{partition_type} {partition_prefix}{i + 1}", dry=args.dry)
+
+                time.sleep(1.0)
 
                 if target_partition.label != "":
                     label_command = f"e2label {device}{i+1} {target_partition.label}"

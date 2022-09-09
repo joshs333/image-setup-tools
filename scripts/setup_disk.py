@@ -245,6 +245,16 @@ if __name__ == "__main__":
                             install_dest = install_dest[1:]
                         copy_file_direct(buffer_folder, source_path, source_type, install_source, os.path.join(mount_point, install_dest))
 
+                if "remove" in target_partition_cfg:
+                    for remove in target_partition_cfg["remove"]:
+                        if remove[0] == "/":
+                            remove = remove[1:]
+                        target_file = os.path.join(mount_point, remove)
+                        if os.path.isdir(target_file):
+                            shutil.rmtree(target_file)
+                        elif os.path.exists(target_file):
+                            os.remove(target_file)
+
                 if "replace_patterns" in target_partition_cfg:
                     for f in target_partition_cfg["replace_patterns"]:
                         if f[0] == "/":
