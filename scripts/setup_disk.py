@@ -245,16 +245,6 @@ if __name__ == "__main__":
                             install_dest = install_dest[1:]
                         copy_file_direct(buffer_folder, source_path, source_type, install_source, os.path.join(mount_point, install_dest))
 
-                if "remove" in target_partition_cfg:
-                    for remove in target_partition_cfg["remove"]:
-                        if remove[0] == "/":
-                            remove = remove[1:]
-                        target_file = os.path.join(mount_point, remove)
-                        if os.path.isdir(target_file):
-                            shutil.rmtree(target_file)
-                        elif os.path.exists(target_file):
-                            os.remove(target_file)
-
                 if "replace_patterns" in target_partition_cfg:
                     for f in target_partition_cfg["replace_patterns"]:
                         if f[0] == "/":
@@ -265,6 +255,24 @@ if __name__ == "__main__":
                         r = subprocess.run(shlex.split(edit_command))
                         edit_command = f"sed -i 's/@ROOTFS_UUID@/{rootfs_uuid}/g' {target_f}"
                         r = subprocess.run(shlex.split(edit_command))
+
+                if "post_script" in target_partition_cfg:
+                    for f in target_partition_cfg["post_script"]:
+                        if f[0] == "/":
+                            f = f[1:]
+                        target_script = os.path.join(mount_point, f)
+
+                        subprocess.run(shlex.split(target_script + " " + mount_point), cwd=mount_point)
+
+                if "remove" in target_partition_cfg:
+                    for remove in target_partition_cfg["remove"]:
+                        if remove[0] == "/":
+                            remove = remove[1:]
+                        target_file = os.path.join(mount_point, remove)
+                        if os.path.isdir(target_file):
+                            shutil.rmtree(target_file)
+                        elif os.path.exists(target_file):
+                            os.remove(target_file)
 
             except Exception as err:
                 failed = True

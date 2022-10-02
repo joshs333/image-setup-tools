@@ -1,0 +1,27 @@
+FROM joshs333/image-setup/base-os-graphical
+
+# Base utilities / software needed to boot
+RUN export DEBIAN_FRONTEND=noninteractive \
+    # update tmp perms so apt-key can pass temporary files to apt.
+    && chmod 777 /tmp \
+    && apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        ubuntu-gnome-desktop \
+        gnome-terminal \
+        netplan.io \
+        yaru-theme* \
+        ttf-ubuntu-font-family \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD base-setup-graphical/overlay/ /
+
+RUN dbus-run-session gsettings set org.gnome.desktop.session idle-delay 0 \
+ && dbus-run-session gsettings set org.gnome.desktop.interface gtk-theme "Yaru" \
+ && dbus-run-session gsettings set org.gnome.desktop.interface icon-theme "Yaru" \
+ && dbus-run-session gsettings set org.gnome.desktop.wm.preferences theme "Yaru" \
+ && dbus-run-session gsettings set org.gnome.desktop.interface monospace-font-name "Ubuntu Mono 13" \
+ && dbus-run-session gsettings set org.gnome.desktop.interface document-font-name "Ubuntu Mono 13" \
+ && dbus-run-session gsettings set org.gnome.desktop.interface font-name "Ubuntu Mono 13"
+
+RUN set -xe \
+    && getfacl -Rn / > /tmp/perm_dump

@@ -9,4 +9,4 @@ build_dir=$__dir/../
 
 $__dir/../base-os/build_base_os.sh
 
-docker build -f $build_dir/nightmare-stick/nightmare-stick.docker -t joshs333/rauc-setup/nightmare:latest $build_dir
+docker build -f $build_dir/nightmare-stick/nightmare-stick.docker -t joshs333/image-setup/nightmare:latest $build_dir

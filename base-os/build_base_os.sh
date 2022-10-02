@@ -17,4 +17,4 @@ if [[ ! -e $downloads_dir/ubuntu-base-20.04.4-base-amd64.tar.gz ]]; then
     cd $__call_dir
 fi
 
-docker build -f $build_dir/base-os/base-os.docker -t joshs333/rauc-setup/base-os:latest $build_dir
+docker build -f $build_dir/base-os/base-os.docker -t joshs333/image-setup/base-os:latest $build_dir

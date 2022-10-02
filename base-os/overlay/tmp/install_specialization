@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo "I would make the install special!"
+echo "I can set the hostname, change network address,"
+echo "Or whatever you want :) haha"
+
+sleep 1

@@ -9,7 +9,7 @@ grub_setup:
   # of the efi partition.. this setup is primary for rauc a/b compatibility,
   # you could also install the actual grub config directly, or have a grub_redirect
   # to a grub_config in the main os partition.
-  config: /boot/EFI/BOOT/grub.cfg
+  config: /boot/grub/EFI/BOOT/grub.cfg
 # Setup Partitions (array of partitions to setup)
 partition_setup:
 - partition: 1
@@ -31,5 +31,7 @@ partition_setup:
   # (This is because we can't label the efi partition because it's fat32)
   replace_patterns:
   - /etc/fstab
+  post_script:
+  - /tmp/install_specialization
   remove:
   - /tmp

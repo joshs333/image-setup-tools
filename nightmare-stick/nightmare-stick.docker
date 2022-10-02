@@ -1,4 +1,4 @@
-FROM joshs333/rauc-setup/base-os
+FROM joshs333/image-setup/base-os
 
 ARG nightmare_dir=/home/user/nightmare
 

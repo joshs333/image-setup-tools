@@ -70,6 +70,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         xz-utils \
         acl \
         isc-dhcp-client \
+        netplan.io \
     && rm -rf /var/lib/apt/lists/*
 
 ARG admin_username=admin
@@ -95,7 +96,7 @@ RUN set -xe \
     && cp /usr/share/grub/unicode.pf2 /boot/grub/fonts \
     && cp /usr/share/grub/unicode.pf2 /boot/grub \
     && grub-editenv create \
-    && update-grub-gfxpayload \
+    && update-grub-gfxpayload
 
 RUN set -xe \
     && mkdir -p /boot/grub/EFI/BOOT \
